@@ -33,6 +33,8 @@ export default function TemplatesManagementPage() {
   const [features, setFeatures] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const loadTemplates = async () => {
     setLoading(true);
     setError(null);
@@ -82,13 +84,25 @@ export default function TemplatesManagementPage() {
   const handleDeleteTemplate = async (id: string, templateName: string) => {
     if (!confirm(`Are you sure you want to delete template "${templateName}"?`)) return;
 
+    setDeletingId(id);
     try {
-      await fetchApi(`/api/admin/templates/${id}`, {
-        method: "DELETE",
-      });
+      try {
+        await fetchApi(`/api/admin/templates/${id}`, {
+          method: "DELETE",
+        });
+      } catch {
+        // Fallback to /api/templates/:id
+        await fetchApi(`/api/templates/${id}`, {
+          method: "DELETE",
+        });
+      }
+      // Optimistically update list and refresh
+      setTemplates((prev) => prev.filter((t) => t.id !== id && t.slug !== id));
       await loadTemplates();
     } catch (err: any) {
       alert(err.message || "Failed to delete template.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -154,10 +168,15 @@ export default function TemplatesManagementPage() {
               <span className="text-xs text-slate-500 font-mono">ID: {tpl.id.slice(0, 8)}...</span>
               <button
                 onClick={() => handleDeleteTemplate(tpl.id, tpl.name)}
-                className="p-2 rounded-lg bg-rose-950/60 border border-rose-800/60 text-rose-400 hover:bg-rose-900 hover:text-white transition-all cursor-pointer"
+                disabled={deletingId === tpl.id}
+                className="p-2 rounded-lg bg-rose-950/60 border border-rose-800/60 text-rose-400 hover:bg-rose-900 hover:text-white transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1 text-xs"
                 title="Delete Theme"
               >
-                <Trash2 className="w-4 h-4" />
+                {deletingId === tpl.id ? (
+                  <span className="animate-spin text-xs">⏳</span>
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
               </button>
             </div>
           </div>

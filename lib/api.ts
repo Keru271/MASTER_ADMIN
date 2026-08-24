@@ -7,7 +7,7 @@ export async function fetchApi<T = any>(
   const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
 
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(options.body ? { "Content-Type": "application/json" } : {}),
     ...(options.headers as Record<string, string>),
   };
 
@@ -15,7 +15,11 @@ export async function fetchApi<T = any>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
+  const normalizedEndpoint = endpoint.startsWith("/api/") || endpoint === "/api"
+    ? endpoint
+    : `/api${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+
+  const response = await fetch(`${API_BASE}${normalizedEndpoint}`, {
     ...options,
     headers,
   });

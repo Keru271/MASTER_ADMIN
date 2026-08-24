@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { AdminLayout } from "@/components/AdminLayout";
 import { fetchApi } from "@/lib/api";
 import {
   Bell,
@@ -100,17 +99,6 @@ export default function NotificationsPage() {
     }
   };
 
-  const handleToggleChannel = (triggerKey: string, channelKey: "emailEnabled" | "smsEnabled" | "whatsAppEnabled" | "pushEnabled") => {
-    setConfigs((prev) =>
-      prev.map((c) => {
-        if (c.trigger === triggerKey) {
-          return { ...c, [channelKey]: !c[channelKey] };
-        }
-        return c;
-      })
-    );
-  };
-
   const handleUpdateTemplate = (field: keyof NotificationConfigItem, val: any) => {
     setConfigs((prev) =>
       prev.map((c) => {
@@ -140,6 +128,64 @@ export default function NotificationsPage() {
       console.error("Failed to save notification config:", err);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleGlobalChannelToggle = async (channel: "EMAIL" | "SMS" | "WHATSAPP" | "PUSH", currentActive: boolean) => {
+    const nextState = !currentActive;
+    const fieldKey =
+      channel === "SMS"
+        ? "smsEnabled"
+        : channel === "EMAIL"
+        ? "emailEnabled"
+        : channel === "WHATSAPP"
+        ? "whatsAppEnabled"
+        : "pushEnabled";
+
+    setConfigs((prev) =>
+      prev.map((c) => ({
+        ...c,
+        [fieldKey]: nextState,
+      }))
+    );
+
+    try {
+      await fetchApi("/notifications/channel-toggle", {
+        method: "PATCH",
+        body: JSON.stringify({
+          channel,
+          enabled: nextState,
+          storeId: selectedStoreId,
+        }),
+      });
+
+      setToastMessage(`Master ${channel} Gateway ${nextState ? "Enabled" : "Disabled"} across all triggers!`);
+      setTimeout(() => setToastMessage(""), 4000);
+    } catch (err) {
+      console.error("Failed to toggle channel globally:", err);
+      setToastMessage("Failed to update gateway status.");
+    }
+  };
+
+  const handleToggleChannel = async (triggerKey: string, channelKey: "emailEnabled" | "smsEnabled" | "whatsAppEnabled" | "pushEnabled") => {
+    const targetConfig = configs.find((c) => c.trigger === triggerKey);
+    if (!targetConfig) return;
+    const nextVal = !targetConfig[channelKey];
+
+    const updated = { ...targetConfig, [channelKey]: nextVal, storeId: selectedStoreId };
+    setConfigs((prev) =>
+      prev.map((c) => (c.trigger === triggerKey ? updated : c))
+    );
+
+    try {
+      await fetchApi(`/notifications/configs/${triggerKey}`, {
+        method: "PATCH",
+        body: JSON.stringify(updated),
+      });
+      setToastMessage(`Updated ${channelKey.replace('Enabled', '')} status for ${targetConfig.title}`);
+      setTimeout(() => setToastMessage(""), 2500);
+    } catch (err) {
+      console.error("Failed to save channel toggle:", err);
     }
   };
 
@@ -175,10 +221,23 @@ export default function NotificationsPage() {
     ABANDONED_CART: ShoppingBag,
   };
 
+  const isGlobalSmsActive = configs.some((c) => c.smsEnabled);
+  const isGlobalEmailActive = configs.some((c) => c.emailEnabled);
+  const isGlobalWhatsAppActive = configs.some((c) => c.whatsAppEnabled);
+  const isGlobalPushActive = configs.some((c) => c.pushEnabled);
+
+  const isCurrentActiveChannelEnabled =
+    activeChannel === "EMAIL"
+      ? !!currentConfig?.emailEnabled
+      : activeChannel === "SMS"
+      ? !!currentConfig?.smsEnabled
+      : activeChannel === "WHATSAPP"
+      ? !!currentConfig?.whatsAppEnabled
+      : !!currentConfig?.pushEnabled;
+
   return (
-    <AdminLayout>
-      <div className="p-8 space-y-6 max-w-7xl mx-auto pb-16">
-        {/* Toast */}
+    <div className="space-y-6">
+      {/* Toast */}
         {toastMessage && (
           <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-2xl flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
@@ -200,11 +259,11 @@ export default function NotificationsPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <select
               value={selectedStoreId}
               onChange={(e) => setSelectedStoreId(e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-slate-200 text-sm font-semibold rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition-all"
+              className="bg-slate-950 border border-slate-800 text-slate-200 text-sm font-semibold rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 transition-all w-full sm:w-auto"
             >
               {stores.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -216,11 +275,82 @@ export default function NotificationsPage() {
             <button
               onClick={handleSaveTriggerConfig}
               disabled={saving}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-indigo-600/30 cursor-pointer disabled:opacity-50"
+              className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-600/30 cursor-pointer disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               {saving ? "Saving..." : "Save Trigger Config"}
             </button>
+          </div>
+        </div>
+
+        {/* Master Gateways Global Quick-Toggles */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div
+            onClick={() => handleGlobalChannelToggle("SMS", isGlobalSmsActive)}
+            className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+              isGlobalSmsActive
+                ? "bg-emerald-950/30 border-emerald-600/50 text-emerald-300"
+                : "bg-slate-900 border-slate-800 text-slate-400 opacity-70"
+            }`}
+          >
+            <div>
+              <span className="text-[10px] uppercase font-black tracking-wider block">Master SMS Gateway</span>
+              <span className="text-xs font-bold">{isGlobalSmsActive ? "Enabled (All Triggers)" : "Disabled (Off)"}</span>
+            </div>
+            <div className={`px-2.5 py-1 rounded-full text-[10px] font-black ${isGlobalSmsActive ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "bg-rose-500/20 text-rose-300 border border-rose-500/40"}`}>
+              {isGlobalSmsActive ? "ON" : "OFF"}
+            </div>
+          </div>
+
+          <div
+            onClick={() => handleGlobalChannelToggle("EMAIL", isGlobalEmailActive)}
+            className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+              isGlobalEmailActive
+                ? "bg-blue-950/30 border-blue-600/50 text-blue-300"
+                : "bg-slate-900 border-slate-800 text-slate-400 opacity-70"
+            }`}
+          >
+            <div>
+              <span className="text-[10px] uppercase font-black tracking-wider block">Master Email Engine</span>
+              <span className="text-xs font-bold">{isGlobalEmailActive ? "Active (SES/SendGrid)" : "Disabled"}</span>
+            </div>
+            <div className={`px-2.5 py-1 rounded-full text-[10px] font-black ${isGlobalEmailActive ? "bg-blue-500/20 text-blue-300 border border-blue-500/40" : "bg-rose-500/20 text-rose-300 border border-rose-500/40"}`}>
+              {isGlobalEmailActive ? "ON" : "OFF"}
+            </div>
+          </div>
+
+          <div
+            onClick={() => handleGlobalChannelToggle("WHATSAPP", isGlobalWhatsAppActive)}
+            className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+              isGlobalWhatsAppActive
+                ? "bg-emerald-950/30 border-emerald-600/50 text-emerald-300"
+                : "bg-slate-900 border-slate-800 text-slate-400 opacity-70"
+            }`}
+          >
+            <div>
+              <span className="text-[10px] uppercase font-black tracking-wider block">WhatsApp Business API</span>
+              <span className="text-xs font-bold">{isGlobalWhatsAppActive ? "Meta Cloud Active" : "Disabled"}</span>
+            </div>
+            <div className={`px-2.5 py-1 rounded-full text-[10px] font-black ${isGlobalWhatsAppActive ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "bg-rose-500/20 text-rose-300 border border-rose-500/40"}`}>
+              {isGlobalWhatsAppActive ? "ON" : "OFF"}
+            </div>
+          </div>
+
+          <div
+            onClick={() => handleGlobalChannelToggle("PUSH", isGlobalPushActive)}
+            className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+              isGlobalPushActive
+                ? "bg-amber-950/30 border-amber-600/50 text-amber-300"
+                : "bg-slate-900 border-slate-800 text-slate-400 opacity-70"
+            }`}
+          >
+            <div>
+              <span className="text-[10px] uppercase font-black tracking-wider block">Web Push Engine</span>
+              <span className="text-xs font-bold">{isGlobalPushActive ? "Web Push Active" : "Disabled"}</span>
+            </div>
+            <div className={`px-2.5 py-1 rounded-full text-[10px] font-black ${isGlobalPushActive ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "bg-rose-500/20 text-rose-300 border border-rose-500/40"}`}>
+              {isGlobalPushActive ? "ON" : "OFF"}
+            </div>
           </div>
         </div>
 
@@ -240,7 +370,7 @@ export default function NotificationsPage() {
                   <button
                     key={c.trigger}
                     onClick={() => setSelectedTrigger(c.trigger)}
-                    className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between ${
+                    className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between cursor-pointer ${
                       isSelected
                         ? "bg-indigo-600/15 border-indigo-500/50 text-indigo-300"
                         : "bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700"
@@ -264,23 +394,23 @@ export default function NotificationsPage() {
           <div className="lg:col-span-3 space-y-6">
             {/* Channel Active Toggles Header */}
             <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                 <div>
                   <h3 className="text-base font-bold text-slate-100">{currentConfig.title} Trigger Channels</h3>
                   <p className="text-xs text-slate-400">Select active delivery channels for this trigger event</p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-slate-400 font-medium">Test Target:</span>
                   <input
                     type="text"
                     value={testTarget}
                     onChange={(e) => setTestTarget(e.target.value)}
-                    className="bg-slate-950 border border-slate-800 text-slate-200 text-xs px-3 py-1.5 rounded-xl outline-none"
+                    className="bg-slate-950 border border-slate-800 text-slate-200 text-xs px-3 py-1.5 rounded-xl outline-none w-36 sm:w-auto"
                   />
                   <button
                     onClick={handleSendTestNotification}
-                    disabled={testSending}
+                    disabled={testSending || !isCurrentActiveChannelEnabled}
                     className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/20 cursor-pointer disabled:opacity-50"
                   >
                     <Send className="w-3.5 h-3.5" />
@@ -333,14 +463,31 @@ export default function NotificationsPage() {
               </div>
             </div>
 
-            {/* Template Editors & Live Preview */}
+              {/* Template Editors & Live Preview */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Template Text Editor */}
               <div className="lg:col-span-2 bg-slate-900/90 border border-slate-800 rounded-3xl p-6 space-y-5">
-                <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  {activeChannel} Template Configuration
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    {activeChannel} Template Configuration
+                  </h4>
+                  {!isCurrentActiveChannelEnabled && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-950 text-rose-300 border border-rose-800">
+                      CHANNEL UNSELECTED / DISABLED
+                    </span>
+                  )}
+                </div>
+
+                {!isCurrentActiveChannelEnabled && (
+                  <div className="p-3.5 rounded-2xl bg-rose-950/30 border border-rose-800/40 text-rose-300 text-xs flex items-center gap-2.5">
+                    <XCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                    <span>
+                      <strong>{activeChannel} Channel is Inactive:</strong> This channel is unselected for{" "}
+                      <em>{currentConfig.title}</em>. Enable the checkbox above to activate template editing and live delivery.
+                    </span>
+                  </div>
+                )}
 
                 {activeChannel === "EMAIL" && (
                   <>
@@ -352,7 +499,8 @@ export default function NotificationsPage() {
                         type="text"
                         value={currentConfig.subjectTemplate || ""}
                         onChange={(e) => handleUpdateTemplate("subjectTemplate", e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 text-sm outline-none focus:border-indigo-500 transition-all font-mono"
+                        disabled={!currentConfig.emailEnabled}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 text-sm outline-none focus:border-indigo-500 transition-all font-mono disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </div>
 
@@ -364,7 +512,8 @@ export default function NotificationsPage() {
                         rows={8}
                         value={currentConfig.emailBodyTemplate || ""}
                         onChange={(e) => handleUpdateTemplate("emailBodyTemplate", e.target.value)}
-                        className="w-full bg-slate-950 font-mono text-xs text-slate-200 border border-slate-800 rounded-2xl p-4 outline-none focus:border-indigo-500 transition-all leading-relaxed"
+                        disabled={!currentConfig.emailEnabled}
+                        className="w-full bg-slate-950 font-mono text-xs text-slate-200 border border-slate-800 rounded-2xl p-4 outline-none focus:border-indigo-500 transition-all leading-relaxed disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </div>
                   </>
@@ -379,7 +528,8 @@ export default function NotificationsPage() {
                       rows={5}
                       value={currentConfig.smsBodyTemplate || ""}
                       onChange={(e) => handleUpdateTemplate("smsBodyTemplate", e.target.value)}
-                      className="w-full bg-slate-950 font-mono text-xs text-emerald-400 border border-slate-800 rounded-2xl p-4 outline-none focus:border-indigo-500 transition-all leading-relaxed"
+                      disabled={!currentConfig.smsEnabled}
+                      className="w-full bg-slate-950 font-mono text-xs text-emerald-400 border border-slate-800 rounded-2xl p-4 outline-none focus:border-indigo-500 transition-all leading-relaxed disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <p className="text-[11px] text-slate-500 mt-1">Characters: {currentConfig.smsBodyTemplate?.length || 0} / 160 (1 SMS Segment)</p>
                   </div>
@@ -394,7 +544,8 @@ export default function NotificationsPage() {
                       rows={6}
                       value={currentConfig.whatsAppTemplate || ""}
                       onChange={(e) => handleUpdateTemplate("whatsAppTemplate", e.target.value)}
-                      className="w-full bg-slate-950 font-mono text-xs text-teal-300 border border-slate-800 rounded-2xl p-4 outline-none focus:border-indigo-500 transition-all leading-relaxed"
+                      disabled={!currentConfig.whatsAppEnabled}
+                      className="w-full bg-slate-950 font-mono text-xs text-teal-300 border border-slate-800 rounded-2xl p-4 outline-none focus:border-indigo-500 transition-all leading-relaxed disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                 )}
@@ -408,7 +559,8 @@ export default function NotificationsPage() {
                       rows={4}
                       value={currentConfig.pushBodyTemplate || ""}
                       onChange={(e) => handleUpdateTemplate("pushBodyTemplate", e.target.value)}
-                      className="w-full bg-slate-950 font-mono text-xs text-purple-300 border border-slate-800 rounded-2xl p-4 outline-none focus:border-indigo-500 transition-all leading-relaxed"
+                      disabled={!currentConfig.pushEnabled}
+                      className="w-full bg-slate-950 font-mono text-xs text-purple-300 border border-slate-800 rounded-2xl p-4 outline-none focus:border-indigo-500 transition-all leading-relaxed disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                 )}
@@ -431,66 +583,79 @@ export default function NotificationsPage() {
               <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 space-y-4">
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Live Device Card Preview</h4>
 
-                {activeChannel === "EMAIL" && (
-                  <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 font-sans shadow-lg">
-                    <div className="text-xs text-slate-400 border-b border-slate-800 pb-2">
-                      <div><strong className="text-slate-200">From:</strong> store@omnistore.internal</div>
-                      <div><strong className="text-slate-200">Subject:</strong> {currentConfig.subjectTemplate || "Subject Preview"}</div>
+                {!isCurrentActiveChannelEnabled ? (
+                  <div className="bg-slate-950 border border-slate-800 rounded-2xl p-8 text-center space-y-2">
+                    <div className="w-10 h-10 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto">
+                      <XCircle className="w-5 h-5" />
                     </div>
-                    <div className="text-xs text-slate-300 leading-relaxed whitespace-pre-line">
-                      {currentConfig.emailBodyTemplate?.replace(/\{\{customer_name\}\}/g, "John Doe")
-                        .replace(/\{\{order_number\}\}/g, "ORD-8942")
-                        .replace(/\{\{total_amount\}\}/g, "$128.50")
-                        .replace(/\{\{store_name\}\}/g, "OmniStore") || "Email body preview"}
-                    </div>
+                    <h5 className="text-sm font-bold text-slate-200">{activeChannel} Channel is Disabled</h5>
+                    <p className="text-xs text-slate-500">
+                      This channel is unselected for {currentConfig.title}. Toggle the checkbox above to activate.
+                    </p>
                   </div>
-                )}
+                ) : (
+                  <>
+                    {activeChannel === "EMAIL" && (
+                      <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 font-sans shadow-lg">
+                        <div className="text-xs text-slate-400 border-b border-slate-800 pb-2">
+                          <div><strong className="text-slate-200">From:</strong> store@omnistore.internal</div>
+                          <div><strong className="text-slate-200">Subject:</strong> {currentConfig.subjectTemplate || "Subject Preview"}</div>
+                        </div>
+                        <div className="text-xs text-slate-300 leading-relaxed whitespace-pre-line">
+                          {currentConfig.emailBodyTemplate?.replace(/\{\{customer_name\}\}/g, "John Doe")
+                            .replace(/\{\{order_number\}\}/g, "ORD-8942")
+                            .replace(/\{\{total_amount\}\}/g, "$128.50")
+                            .replace(/\{\{store_name\}\}/g, "OmniStore") || "Email body preview"}
+                        </div>
+                      </div>
+                    )}
 
-                {activeChannel === "SMS" && (
-                  <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2 font-mono text-xs shadow-lg border-l-4 border-l-emerald-500">
-                    <div className="text-[10px] text-emerald-400 font-bold">SMS MESSAGE</div>
-                    <div className="text-slate-200 whitespace-pre-line">
-                      {currentConfig.smsBodyTemplate?.replace(/\{\{customer_name\}\}/g, "John")
-                        .replace(/\{\{order_number\}\}/g, "ORD-8942")
-                        .replace(/\{\{total_amount\}\}/g, "$128.50")
-                        .replace(/\{\{store_name\}\}/g, "OmniStore")
-                        .replace(/\{\{tracking_url\}\}/g, "https://omni.link/t8942") || "SMS preview"}
-                    </div>
-                  </div>
-                )}
+                    {activeChannel === "SMS" && (
+                      <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2 font-mono text-xs shadow-lg border-l-4 border-l-emerald-500">
+                        <div className="text-[10px] text-emerald-400 font-bold">SMS MESSAGE</div>
+                        <div className="text-slate-200 whitespace-pre-line">
+                          {currentConfig.smsBodyTemplate?.replace(/\{\{customer_name\}\}/g, "John")
+                            .replace(/\{\{order_number\}\}/g, "ORD-8942")
+                            .replace(/\{\{total_amount\}\}/g, "$128.50")
+                            .replace(/\{\{store_name\}\}/g, "OmniStore")
+                            .replace(/\{\{tracking_url\}\}/g, "https://omni.link/t8942") || "SMS preview"}
+                        </div>
+                      </div>
+                    )}
 
-                {activeChannel === "WHATSAPP" && (
-                  <div className="bg-teal-950/40 border border-teal-800/60 rounded-2xl p-4 space-y-2 font-sans text-xs shadow-lg border-l-4 border-l-teal-500">
-                    <div className="text-[10px] text-teal-300 font-bold flex items-center gap-1">
-                      <MessageSquare className="w-3 h-3 text-teal-400" /> WhatsApp Business
-                    </div>
-                    <div className="text-slate-200 whitespace-pre-line leading-relaxed">
-                      {currentConfig.whatsAppTemplate?.replace(/\{\{customer_name\}\}/g, "John")
-                        .replace(/\{\{order_number\}\}/g, "ORD-8942")
-                        .replace(/\{\{total_amount\}\}/g, "$128.50")
-                        .replace(/\{\{store_name\}\}/g, "OmniStore")
-                        .replace(/\{\{tracking_url\}\}/g, "https://omni.link/t8942") || "WhatsApp preview"}
-                    </div>
-                  </div>
-                )}
+                    {activeChannel === "WHATSAPP" && (
+                      <div className="bg-teal-950/40 border border-teal-800/60 rounded-2xl p-4 space-y-2 font-sans text-xs shadow-lg border-l-4 border-l-teal-500">
+                        <div className="text-[10px] text-teal-300 font-bold flex items-center gap-1">
+                          <MessageSquare className="w-3 h-3 text-teal-400" /> WhatsApp Business
+                        </div>
+                        <div className="text-slate-200 whitespace-pre-line leading-relaxed">
+                          {currentConfig.whatsAppTemplate?.replace(/\{\{customer_name\}\}/g, "John")
+                            .replace(/\{\{order_number\}\}/g, "ORD-8942")
+                            .replace(/\{\{total_amount\}\}/g, "$128.50")
+                            .replace(/\{\{store_name\}\}/g, "OmniStore")
+                            .replace(/\{\{tracking_url\}\}/g, "https://omni.link/t8942") || "WhatsApp preview"}
+                        </div>
+                      </div>
+                    )}
 
-                {activeChannel === "PUSH" && (
-                  <div className="bg-slate-950 border border-purple-800/60 rounded-2xl p-4 space-y-2 font-sans text-xs shadow-lg border-l-4 border-l-purple-500">
-                    <div className="text-[10px] text-purple-300 font-bold flex items-center gap-1">
-                      <Bell className="w-3 h-3 text-purple-400" /> Web Push Notification
-                    </div>
-                    <div className="text-slate-200 leading-snug">
-                      {currentConfig.pushBodyTemplate?.replace(/\{\{customer_name\}\}/g, "John")
-                        .replace(/\{\{order_number\}\}/g, "ORD-8942")
-                        .replace(/\{\{store_name\}\}/g, "OmniStore") || "Push notification preview"}
-                    </div>
-                  </div>
+                    {activeChannel === "PUSH" && (
+                      <div className="bg-slate-950 border border-purple-800/60 rounded-2xl p-4 space-y-2 font-sans text-xs shadow-lg border-l-4 border-l-purple-500">
+                        <div className="text-[10px] text-purple-300 font-bold flex items-center gap-1">
+                          <Bell className="w-3 h-3 text-purple-400" /> Web Push Notification
+                        </div>
+                        <div className="text-slate-200 leading-snug">
+                          {currentConfig.pushBodyTemplate?.replace(/\{\{customer_name\}\}/g, "John")
+                            .replace(/\{\{order_number\}\}/g, "ORD-8942")
+                            .replace(/\{\{store_name\}\}/g, "OmniStore") || "Push notification preview"}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
           </div>
         </div>
       </div>
-    </AdminLayout>
   );
 }

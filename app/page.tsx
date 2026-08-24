@@ -71,7 +71,7 @@ export default function AdminDashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchApi<DashboardAnalyticsResponse>("/analytics/dashboard");
+      const res = await fetchApi<DashboardAnalyticsResponse>("/api/analytics/dashboard");
       setData(res);
     } catch (err: any) {
       console.error("Failed to load analytics:", err);
@@ -279,20 +279,24 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="space-y-4">
-            {data?.trafficChannels.map((tc, idx) => (
-              <div key={idx} className="space-y-1.5">
-                <div className="flex justify-between text-xs font-medium text-slate-300">
-                  <span>{tc.channel}</span>
-                  <span className="font-mono text-slate-400">{tc.sessions.toLocaleString()} ({tc.percentage}%)</span>
+            {data?.trafficChannels && data.trafficChannels.length > 0 ? (
+              data.trafficChannels.map((tc, idx) => (
+                <div key={idx} className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-medium text-slate-300">
+                    <span>{tc.channel}</span>
+                    <span className="font-mono text-slate-400">{tc.sessions.toLocaleString()} ({tc.percentage}%)</span>
+                  </div>
+                  <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                    <div
+                      className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-500"
+                      style={{ width: `${tc.percentage}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-                  <div
-                    className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-500"
-                    style={{ width: `${tc.percentage}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <div className="text-xs text-slate-500 py-6 text-center">No traffic session channels recorded yet.</div>
+            )}
           </div>
         </div>
 
