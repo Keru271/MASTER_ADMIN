@@ -3,13 +3,16 @@
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Lock, Mail, AlertCircle, ArrowRight, Loader2 } from "lucide-react";
+import { fetchApi } from "@/lib/api";
+import { ShieldCheck, Lock, Mail, AlertCircle, ArrowRight, Loader2, UserPlus, CheckCircle2 } from "lucide-react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("admin@cms.com");
+  const [email, setEmail] = useState("admin@cms");
   const [password, setPassword] = useState("Admin123!@#");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [provisioning, setProvisioning] = useState(false);
+  const [provisionSuccess, setProvisionSuccess] = useState<string | null>(null);
 
   const { login } = useAuth();
   const router = useRouter();
@@ -17,6 +20,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setProvisionSuccess(null);
     setSubmitting(true);
 
     try {
@@ -26,6 +30,34 @@ export default function LoginPage() {
       setError(err.message || "Failed to log in as Master Admin.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleAddUser = async () => {
+    setError(null);
+    setProvisionSuccess(null);
+    setProvisioning(true);
+
+    const targetEmail = "admin@cms";
+    const targetPassword = "Admin123!@#";
+
+    try {
+      const data = await fetchApi("/api/users/provision-admin", {
+        method: "POST",
+        body: JSON.stringify({
+          email: targetEmail,
+          password: targetPassword,
+          name: "Master Admin",
+        }),
+      });
+
+      setEmail(targetEmail);
+      setPassword(targetPassword);
+      setProvisionSuccess(data.message || `User ${targetEmail} added successfully.`);
+    } catch (err: any) {
+      setError(err.message || "Failed to add Master Admin user.");
+    } finally {
+      setProvisioning(false);
     }
   };
 
@@ -45,13 +77,25 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-rose-950/60 border border-rose-800/50 text-rose-300 text-sm flex items-start gap-3">
+          <div className="mb-6 p-4 rounded-xl bg-rose-950/60 border border-rose-800/50 text-rose-300 text-sm flex items-start gap-3 animate-in fade-in">
             <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        {provisionSuccess && (
+          <div className="mb-6 p-4 rounded-xl bg-emerald-950/60 border border-emerald-800/50 text-emerald-300 text-sm flex items-start gap-3 animate-in fade-in">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">User Added Successfully!</p>
+              <p className="text-xs text-emerald-400/90 mt-0.5">
+                Master Admin user <strong>admin@cms</strong> with password <strong>Admin123!@#</strong> is ready. Click "Sign In to Dashboard" below to log in.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} noValidate className="space-y-5">
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
               Admin Email
@@ -59,12 +103,12 @@ export default function LoginPage() {
             <div className="relative">
               <Mail className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
-                type="email"
+                type="text"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm"
-                placeholder="admin@cms.com"
+                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm font-mono"
+                placeholder="admin@cms"
               />
             </div>
           </div>
@@ -80,7 +124,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm"
+                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm font-mono"
                 placeholder="••••••••••••"
               />
             </div>
@@ -88,7 +132,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || provisioning}
             className="w-full mt-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
           >
             {submitting ? (
@@ -105,9 +149,29 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-slate-800 text-center">
-          <p className="text-xs text-slate-500">
-            Default credentials: <code className="text-indigo-400 bg-slate-950 px-2 py-0.5 rounded">admin@cms.com</code> / <code className="text-indigo-400 bg-slate-950 px-2 py-0.5 rounded">Admin123!@#</code>
+        {/* Button to Add User in Master Admin */}
+        <div className="mt-6 pt-5 border-t border-slate-800/80 space-y-3">
+          <button
+            type="button"
+            onClick={handleAddUser}
+            disabled={provisioning || submitting}
+            className="w-full bg-slate-800/90 hover:bg-slate-800 border border-indigo-500/40 hover:border-indigo-500 text-indigo-300 hover:text-white font-semibold py-3 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer text-xs uppercase tracking-wider"
+          >
+            {provisioning ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                <span>Adding Master Admin User...</span>
+              </>
+            ) : (
+              <>
+                <UserPlus className="w-4 h-4 text-indigo-400" />
+                <span>Add User (admin@cms / Admin123!@#)</span>
+              </>
+            )}
+          </button>
+
+          <p className="text-center text-[11px] text-slate-500">
+            Creates or resets master admin user <code className="text-indigo-400 bg-slate-950 px-1.5 py-0.5 rounded font-mono">admin@cms</code> with password <code className="text-indigo-400 bg-slate-950 px-1.5 py-0.5 rounded font-mono">Admin123!@#</code>
           </p>
         </div>
       </div>
