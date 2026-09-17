@@ -8,6 +8,8 @@ interface User {
   name: string;
   email: string;
   role: string;
+  permissionsPricingTiers?: boolean;
+  permissionsDiscounts?: boolean;
 }
 
 interface AuthContextType {

@@ -41,6 +41,8 @@ interface UserItem {
   permissionsSettings: boolean;
   permissionsPayments: boolean;
   permissionsAnalytics: boolean;
+  permissionsPricingTiers?: boolean;
+  permissionsDiscounts?: boolean;
   emailVerified: boolean;
   createdAt: string;
   stores?: StoreSummary[];
@@ -79,6 +81,8 @@ const ROLE_PRESETS: Record<string, { title: string; permissions: Record<string, 
       permissionsSettings: true,
       permissionsPayments: true,
       permissionsAnalytics: true,
+      permissionsPricingTiers: true,
+      permissionsDiscounts: true,
     },
   },
   MANAGER: {
@@ -545,6 +549,8 @@ export default function UserManagementPage() {
                 { key: "permissionsSettings", label: "Store Settings", desc: "Modify store configuration & business details", req: "✗ Manager Restricted" },
                 { key: "permissionsPayments", label: "Payments & Gateways", desc: "Configure payment gateways & payouts", req: "✗ Manager Restricted" },
                 { key: "permissionsAnalytics", label: "Analytics & Reports", desc: "View store sales, conversion & traffic metrics", req: "✓ Required for Manager" },
+                { key: "permissionsPricingTiers", label: "Master Pricing Tiers", desc: "Create, edit & delete global subscription tiers", req: "🛡️ Master Admin Only" },
+                { key: "permissionsDiscounts", label: "Promotional Discounts", desc: "Create & apply promotional discount percentages & tags", req: "🛡️ Master Admin Only" },
               ].map((perm) => {
                 const isChecked = (selectedUser as any)[perm.key];
                 return (
