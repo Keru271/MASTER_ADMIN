@@ -3,6 +3,7 @@
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import { UserCheck, Activity, Menu } from "lucide-react";
+import { PWAInstallButton } from "@/components/PWAInstallButton";
 
 interface HeaderProps {
   onToggleMobileMenu?: () => void;
@@ -29,6 +30,8 @@ export function Header({ onToggleMobileMenu }: HeaderProps) {
           <span className="hidden sm:inline">System Normal</span>
           <span className="sm:hidden">Online</span>
         </div>
+
+        <PWAInstallButton variant="header" />
       </div>
 
       {user && (
