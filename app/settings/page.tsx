@@ -569,7 +569,7 @@ export default function StoreSettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                  Standard GST / VAT Rate (%)
+                  Standard GST Rate (%)
                 </label>
                 <input
                   type="number"
@@ -589,7 +589,7 @@ export default function StoreSettingsPage() {
                   />
                   <div>
                     <div className="font-semibold text-slate-200 text-sm">Prices Include Tax</div>
-                    <div className="text-xs text-slate-400">All product prices shown are inclusive of GST/VAT</div>
+                    <div className="text-xs text-slate-400">All product prices shown are inclusive of GST</div>
                   </div>
                 </label>
               </div>
