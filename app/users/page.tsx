@@ -549,6 +549,7 @@ export default function UserManagementPage() {
                 { key: "permissionsSettings", label: "Store Settings", desc: "Modify store configuration & business details", req: "✗ Manager Restricted" },
                 { key: "permissionsPayments", label: "Payments & Gateways", desc: "Configure payment gateways & payouts", req: "✗ Manager Restricted" },
                 { key: "permissionsAnalytics", label: "Analytics & Reports", desc: "View store sales, conversion & traffic metrics", req: "✓ Required for Manager" },
+                { key: "permissions3D", label: "3D Product Modeling", desc: "Upload 3D models & access 3D AI Studio", req: "✓ 3D Modeling & AR Access" },
                 { key: "permissionsPricingTiers", label: "Master Pricing Tiers", desc: "Create, edit & delete global subscription tiers", req: "🛡️ Master Admin Only" },
                 { key: "permissionsDiscounts", label: "Promotional Discounts", desc: "Create & apply promotional discount percentages & tags", req: "🛡️ Master Admin Only" },
               ].map((perm) => {
