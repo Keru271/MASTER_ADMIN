@@ -19,16 +19,29 @@ export async function fetchApi<T = any>(
     ? endpoint
     : `/api${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
 
-  const response = await fetch(`${API_BASE}${normalizedEndpoint}`, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(`${API_BASE}${normalizedEndpoint}`, {
+      ...options,
+      headers,
+    });
 
-  const data = await response.json();
+    let data: any = {};
+    try {
+      data = await response.json();
+    } catch {
+      data = {};
+    }
 
-  if (!response.ok) {
-    throw new Error(data.message || "An error occurred during API request");
+    if (!response.ok) {
+      throw new Error(data?.message || `Request failed with status ${response.status}`);
+    }
+
+    return data as T;
+  } catch (err: any) {
+    if (err.message && err.message.includes("Failed to fetch")) {
+      throw new Error(`Cannot connect to CMS Backend at ${API_BASE}. Please ensure cms-backend is running.`);
+    }
+    throw err;
   }
-
-  return data;
 }
+

@@ -5,12 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  Activity,
   Users,
   Store,
   CreditCard,
   Palette,
   Bell,
-  Code2,
   Settings,
   ShieldAlert,
   HelpCircle,
@@ -31,12 +31,12 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: SidebarProps) {
 
   const navItems = [
     { label: "Dashboard", href: "/", icon: LayoutDashboard },
+    { label: "Ping Status", href: "/ping", icon: Activity },
     { label: "Appeals & Inquiries", href: "/queries", icon: HelpCircle },
     { label: "User Management", href: "/users", icon: Users },
     { label: "Global Stores", href: "/stores", icon: Store },
     { label: "Pricing Tiers", href: "/pricing", icon: CreditCard },
     { label: "Notifications", href: "/notifications", icon: Bell },
-    { label: "Developer API", href: "/developer", icon: Code2 },
     { label: "Marketplace Themes", href: "/templates", icon: Palette },
     { label: "System Settings", href: "/settings", icon: Settings },
   ];
