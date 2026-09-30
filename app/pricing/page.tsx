@@ -41,6 +41,8 @@ interface PricingTier {
   maxStaff: number;
   transactionFeePercent: number;
   customDomainAllowed: boolean;
+  threeDCreditsMonthly?: number;
+  aiCreditsMonthly?: number;
   popular: boolean;
   sortOrder: number;
   features: string[];
@@ -79,6 +81,8 @@ export default function PricingTiersPage() {
     maxStaff: number;
     transactionFeePercent: number;
     customDomainAllowed: boolean;
+    threeDCreditsMonthly: number;
+    aiCreditsMonthly: number;
     popular: boolean;
     sortOrder: number;
     features: string[];
@@ -99,6 +103,8 @@ export default function PricingTiersPage() {
     maxStaff: 1,
     transactionFeePercent: 2.0,
     customDomainAllowed: false,
+    threeDCreditsMonthly: 5,
+    aiCreditsMonthly: 100,
     popular: false,
     sortOrder: 1,
     features: [""],
@@ -156,9 +162,13 @@ export default function PricingTiersPage() {
       maxStaff: 2,
       transactionFeePercent: 2.0,
       customDomainAllowed: false,
+      threeDCreditsMonthly: 5,
+      aiCreditsMonthly: 100,
       popular: false,
       sortOrder: tiers.length + 1,
       features: [
+        "100 Monthly AI Credits (Storefront & Copilot)",
+        "5 3D Model Generations",
         "1 Store Instance",
         "Default Theme Template",
         "Standard Checkout",
@@ -192,6 +202,8 @@ export default function PricingTiersPage() {
       maxStaff: tier.maxStaff || 1,
       transactionFeePercent: tier.transactionFeePercent ?? 2.0,
       customDomainAllowed: Boolean(tier.customDomainAllowed),
+      threeDCreditsMonthly: tier.threeDCreditsMonthly ?? 5,
+      aiCreditsMonthly: tier.aiCreditsMonthly ?? 100,
       popular: Boolean(tier.popular),
       sortOrder: tier.sortOrder || 1,
       features: tier.features && tier.features.length > 0 ? [...tier.features] : [""],
@@ -478,6 +490,21 @@ export default function PricingTiersPage() {
 
                   {/* Limits & Details */}
                   <div className="space-y-1.5 text-xs text-slate-300">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400 flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>AI Credits / mo:</span>
+                      </span>
+                      <span className="font-bold text-indigo-300">
+                        {tier.aiCreditsMonthly !== undefined ? tier.aiCreditsMonthly.toLocaleString() : 100}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">3D Credits / mo:</span>
+                      <span className="font-bold text-slate-200">
+                        {tier.threeDCreditsMonthly !== undefined ? tier.threeDCreditsMonthly.toLocaleString() : 5}
+                      </span>
+                    </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-400">Products Limit:</span>
                       <span className="font-bold text-slate-200">
@@ -824,6 +851,37 @@ export default function PricingTiersPage() {
                       onChange={(e) => setFormData({ ...formData, transactionFeePercent: Number(e.target.value) })}
                       className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-indigo-400 mb-1 flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Monthly AI Credits (Storefront & CMS)</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.aiCreditsMonthly}
+                      onChange={(e) => setFormData({ ...formData, aiCreditsMonthly: Number(e.target.value) })}
+                      placeholder="e.g. 500"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-indigo-500/40 text-indigo-200 text-sm font-bold focus:outline-none focus:border-indigo-400"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Credits used by Copilot, AI Generator, & Storefront AI</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-400 mb-1">
+                      Monthly 3D Model Credits
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.threeDCreditsMonthly}
+                      onChange={(e) => setFormData({ ...formData, threeDCreditsMonthly: Number(e.target.value) })}
+                      placeholder="e.g. 15"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Meshy / 3D AR Generation Credits</span>
                   </div>
                 </div>
 
