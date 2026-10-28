@@ -28,6 +28,8 @@ import {
   Globe,
   Wallet,
 } from "lucide-react";
+import { TablePagination } from "@/components/TablePagination";
+import { TableRefreshButton } from "@/components/TableRefreshButton";
 
 interface FleetMetrics {
   totalStores: number;
@@ -167,6 +169,10 @@ export default function MasterAdminDashboardPage() {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [pendingFilter, setPendingFilter] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Pagination for pending payments
+  const [pendingPage, setPendingPage] = useState(1);
+  const [pendingPageSize, setPendingPageSize] = useState(10);
 
   const loadSaasAnalytics = async () => {
     setLoading(true);
@@ -327,14 +333,12 @@ export default function MasterAdminDashboardPage() {
           </p>
         </div>
         <div className="relative z-10 flex items-center gap-3">
-          <button
-            onClick={loadSaasAnalytics}
-            disabled={loading}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-indigo-500/50 transition-all shadow-lg shadow-indigo-600/30 cursor-pointer disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            <span>{loading ? "Refreshing..." : "Refresh Platform Telemetry"}</span>
-          </button>
+          <TableRefreshButton
+            onRefresh={loadSaasAnalytics}
+            isLoading={loading}
+            label="Refresh Platform Telemetry"
+            className="bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500/50 shadow-lg shadow-indigo-600/30 text-xs sm:text-sm font-semibold px-5 py-2.5"
+          />
         </div>
       </div>
 
@@ -746,20 +750,33 @@ export default function MasterAdminDashboardPage() {
               type="text"
               placeholder="Search store name, merchant owner, email, or invoice #..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPendingPage(1);
+              }}
               className="w-full pl-10 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
             />
           </div>
 
           <select
             value={pendingFilter}
-            onChange={(e) => setPendingFilter(e.target.value)}
+            onChange={(e) => {
+              setPendingFilter(e.target.value);
+              setPendingPage(1);
+            }}
             className="w-full sm:w-auto px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
           >
             <option value="ALL">All Pending Payments</option>
             <option value="OVERDUE">Overdue Only (&gt;3 Days)</option>
             <option value="PENDING">Pending Renewal</option>
           </select>
+
+          <TableRefreshButton
+            onRefresh={loadSaasAnalytics}
+            isLoading={loading}
+            size="sm"
+            label="Refresh"
+          />
         </div>
 
         {/* Pending Payments Data Table */}
@@ -778,7 +795,9 @@ export default function MasterAdminDashboardPage() {
             </thead>
             <tbody className="divide-y divide-slate-800 bg-slate-950/40">
               {filteredPending.length > 0 ? (
-                filteredPending.map((item) => (
+                filteredPending
+                  .slice((pendingPage - 1) * pendingPageSize, pendingPage * pendingPageSize)
+                  .map((item) => (
                   <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
                     <td className="py-3.5 px-4">
                       <div className="font-semibold text-slate-100 flex items-center gap-1.5">
@@ -859,6 +878,18 @@ export default function MasterAdminDashboardPage() {
             </tbody>
           </table>
         </div>
+
+        <TablePagination
+          currentPage={pendingPage}
+          totalItems={filteredPending.length}
+          pageSize={pendingPageSize}
+          onPageChange={setPendingPage}
+          onPageSizeChange={(newSize) => {
+            setPendingPageSize(newSize);
+            setPendingPage(1);
+          }}
+          itemName="payments"
+        />
       </div>
 
       {/* 6. RECENT PAID INVOICES & STORE REGISTRATION TIMELINE */}

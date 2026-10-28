@@ -21,6 +21,8 @@ import {
   Building2,
   FilterX,
 } from "lucide-react";
+import { TablePagination } from "@/components/TablePagination";
+import { TableRefreshButton } from "@/components/TableRefreshButton";
 
 interface StoreSummary {
   id: string;
@@ -132,6 +134,10 @@ export default function UserManagementPage() {
   const [merchantFilter, setMerchantFilter] = useState("");
   const [availableStores, setAvailableStores] = useState<AvailableStore[]>([]);
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null);
   const [savingUser, setSavingUser] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -187,11 +193,13 @@ export default function UserManagementPage() {
   }, [search, roleFilter, merchantFilter]);
 
   useEffect(() => {
+    setPage(1);
     loadUsers();
   }, [roleFilter, merchantFilter]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setPage(1);
     loadUsers();
   };
 
@@ -199,6 +207,7 @@ export default function UserManagementPage() {
     setSearch("");
     setRoleFilter("");
     setMerchantFilter("");
+    setPage(1);
   };
 
   const hasActiveFilters = Boolean(search || roleFilter || merchantFilter);
@@ -295,13 +304,12 @@ export default function UserManagementPage() {
             Manage multi-user store staff roles (Owner, Admin, Manager, Editor, Support) & explicit feature access permissions.
           </p>
         </div>
-        <button
-          onClick={loadUsers}
-          className="self-start md:self-auto flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 px-5 py-2.5 rounded-xl text-sm font-medium border border-slate-700 transition-all cursor-pointer"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          <span>Reload Accounts</span>
-        </button>
+        <TableRefreshButton
+          onRefresh={loadUsers}
+          isLoading={loading}
+          label="Reload Accounts"
+          className="self-start md:self-auto"
+        />
       </div>
 
       {error && (
@@ -425,7 +433,9 @@ export default function UserManagementPage() {
                     </td>
                   </tr>
                 )}
-                {users.map((u) => {
+                {users
+                  .slice((page - 1) * pageSize, page * pageSize)
+                  .map((u) => {
                   const isSelected = selectedUser?.id === u.id;
                   const RoleIcon = getRoleIcon(u.role);
                   const userStores = getUserStores(u);
@@ -490,6 +500,18 @@ export default function UserManagementPage() {
               </tbody>
             </table>
           </div>
+
+          <TablePagination
+            currentPage={page}
+            totalItems={users.length}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setPage(1);
+            }}
+            itemName="users"
+          />
         </div>
 
         {/* Selected User Permissions Inspector & Editor */}

@@ -20,6 +20,8 @@ import {
   Bot,
   Layers,
 } from "lucide-react";
+import { TablePagination } from "@/components/TablePagination";
+import { TableRefreshButton } from "@/components/TableRefreshButton";
 
 interface StoreItem {
   id: string;
@@ -83,6 +85,10 @@ export default function StoreManagementPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   // AI Credits modal state
   const [selectedStoreForAi, setSelectedStoreForAi] = useState<StoreItem | null>(null);
   const [aiCreditsDetails, setAiCreditsDetails] = useState<AiCreditsDetails | null>(null);
@@ -110,11 +116,13 @@ export default function StoreManagementPage() {
   };
 
   useEffect(() => {
+    setPage(1);
     loadStores();
   }, [statusFilter]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setPage(1);
     loadStores();
   };
 
@@ -229,13 +237,11 @@ export default function StoreManagementPage() {
             Monitor all merchant stores, enforce compliance, inspect AI credit usage across Storefront and CMS, and override quotas.
           </p>
         </div>
-        <button
-          onClick={loadStores}
-          className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-sm font-medium border border-slate-800 transition-all cursor-pointer"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          <span>Reload Stores</span>
-        </button>
+        <TableRefreshButton
+          onRefresh={loadStores}
+          isLoading={loading}
+          label="Reload Stores"
+        />
       </div>
 
       {error && (
@@ -285,7 +291,9 @@ export default function StoreManagementPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
-              {stores.map((store) => {
+              {stores
+                .slice((page - 1) * pageSize, page * pageSize)
+                .map((store) => {
                 const totalCred = store.aiCreditsTotal ?? 100;
                 const remainingCred = store.aiCredits ?? 100;
                 const usedCred = store.aiCreditsUsed ?? 0;
@@ -454,6 +462,18 @@ export default function StoreManagementPage() {
             </tbody>
           </table>
         </div>
+
+        <TablePagination
+          currentPage={page}
+          totalItems={stores.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setPage(1);
+          }}
+          itemName="stores"
+        />
       </div>
 
       {/* AI Credits & Intelligence Quota Detail Modal */}
