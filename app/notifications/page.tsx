@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { SwipeToast } from "@/components/ui/SwipeToast";
 import { fetchApi } from "@/lib/api";
 import {
   Bell,
@@ -237,13 +238,17 @@ export default function NotificationsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Toast */}
-        {toastMessage && (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-2xl flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-            <span className="text-sm font-semibold">{toastMessage}</span>
-          </div>
-        )}
+      {/* Swipe Toast */}
+      {toastMessage && (
+        <SwipeToast
+          open={!!toastMessage}
+          type="success"
+          title="Notification Gateway"
+          description={toastMessage}
+          onClose={() => setToastMessage("")}
+          duration={4000}
+        />
+      )}
 
         {/* Top Control Bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">

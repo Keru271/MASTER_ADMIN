@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { SwipeToast } from "@/components/ui/SwipeToast";
 import { fetchApi } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -306,22 +307,16 @@ export default function PricingTiersPage() {
 
   return (
     <div className="space-y-6">
-        {/* Toast Notification */}
+        {/* Swipe Toast Notification */}
         {toast && (
-          <div
-            className={`fixed top-5 right-5 z-50 px-5 py-3.5 rounded-2xl shadow-2xl border text-sm font-bold flex items-center gap-3 animate-in fade-in slide-in-from-top-4 ${
-              toast.type === "success"
-                ? "bg-emerald-950 border-emerald-500/50 text-emerald-200"
-                : "bg-rose-950 border-rose-500/50 text-rose-200"
-            }`}
-          >
-            {toast.type === "success" ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-rose-400" />
-            )}
-            <span>{toast.text}</span>
-          </div>
+          <SwipeToast
+            open={!!toast}
+            type={toast.type}
+            title={toast.type === "success" ? "Success" : "Error"}
+            description={toast.text}
+            onClose={() => setToast(null)}
+            duration={4000}
+          />
         )}
 
         {/* Page Header */}

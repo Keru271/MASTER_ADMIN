@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import { SwipeToast } from "@/components/ui/SwipeToast";
 import { fetchApi } from "@/lib/api";
 import {
   Users,
@@ -285,12 +286,16 @@ export default function UserManagementPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
-      {/* Toast */}
+      {/* Swipe Toast */}
       {toastMessage && (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-2xl flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-          <span className="text-sm font-semibold">{toastMessage}</span>
-        </div>
+        <SwipeToast
+          open={!!toastMessage}
+          type="success"
+          title="Permissions Updated"
+          description={toastMessage}
+          onClose={() => setToastMessage("")}
+          duration={4000}
+        />
       )}
 
       {/* Top Banner */}

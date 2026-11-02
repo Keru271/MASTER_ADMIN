@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { SwipeToast } from "@/components/ui/SwipeToast";
 import { fetchApi } from "@/lib/api";
 import {
   Settings,
@@ -199,13 +200,17 @@ export default function StoreSettingsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Toast */}
-        {toast && (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-2xl flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-            <span className="text-sm font-semibold">{toast}</span>
-          </div>
-        )}
+      {/* Swipe Toast */}
+      {toast && (
+        <SwipeToast
+          open={!!toast}
+          type="success"
+          title="Settings Saved"
+          description={toast}
+          onClose={() => setToast("")}
+          duration={4000}
+        />
+      )}
 
         {/* Top Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">

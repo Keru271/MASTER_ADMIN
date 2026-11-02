@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { SwipeToast } from "@/components/ui/SwipeToast";
 import { fetchApi } from "@/lib/api";
 import {
   Store,
@@ -508,9 +509,15 @@ export default function StoreManagementPage() {
             </div>
 
             {modalToast && (
-              <div className="p-3 rounded-xl bg-indigo-950/60 border border-indigo-500/30 text-xs text-indigo-200">
-                {modalToast}
-              </div>
+              <SwipeToast
+                inline
+                open={!!modalToast}
+                type={modalToast.toLowerCase().includes("fail") || modalToast.toLowerCase().includes("error") ? "error" : "success"}
+                title="AI Credits Update"
+                description={modalToast}
+                onClose={() => setModalToast(null)}
+                duration={4500}
+              />
             )}
 
             {loadingAiDetails ? (
