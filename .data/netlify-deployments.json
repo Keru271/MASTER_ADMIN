@@ -1,0 +1,42 @@
+[
+  {
+    "id": "sim_1793718046807",
+    "siteId": "site_sim_12345",
+    "siteName": "serene-croissant-868f08",
+    "url": "https://serene-croissant-868f08.netlify.app",
+    "sslUrl": "https://serene-croissant-868f08.netlify.app",
+    "deployUrl": "https://sim-1793718046807--serene-croissant-868f08.netlify.app",
+    "deploySslUrl": "https://sim-1793718046807--serene-croissant-868f08.netlify.app",
+    "state": "ready",
+    "isCompleted": true,
+    "statusText": "Completed (Live)",
+    "errorMessage": null,
+    "branch": "main",
+    "commitRef": "a1b2c3d",
+    "title": "Production: Storefront theme & checkout deployment",
+    "context": "production",
+    "deployTime": 38,
+    "createdAt": "2026-11-03T15:00:46.807Z",
+    "updatedAt": "2026-11-03T15:00:46.807Z",
+    "publishedAt": "2026-11-03T15:00:46.807Z",
+    "event": "deploy_succeeded",
+    "receivedAt": "2026-11-03T15:00:46.808Z",
+    "rawPayload": {
+      "id": "sim_1793718046807",
+      "site_id": "site_sim_12345",
+      "name": "serene-croissant-868f08",
+      "url": "https://serene-croissant-868f08.netlify.app",
+      "ssl_url": "https://serene-croissant-868f08.netlify.app",
+      "deploy_url": "https://sim-1793718046807--serene-croissant-868f08.netlify.app",
+      "state": "ready",
+      "branch": "main",
+      "commit_ref": "a1b2c3d",
+      "title": "Production: Storefront theme & checkout deployment",
+      "deploy_time": 38,
+      "created_at": "2026-11-03T15:00:46.807Z",
+      "updated_at": "2026-11-03T15:00:46.807Z",
+      "published_at": "2026-11-03T15:00:46.807Z",
+      "error_message": null
+    }
+  }
+]

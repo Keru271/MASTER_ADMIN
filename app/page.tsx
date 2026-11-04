@@ -27,6 +27,7 @@ import {
   Filter,
   Globe,
   Wallet,
+  Rocket,
 } from "lucide-react";
 import { TablePagination } from "@/components/TablePagination";
 import { TableRefreshButton } from "@/components/TableRefreshButton";
@@ -173,6 +174,7 @@ export default function MasterAdminDashboardPage() {
   // Pagination for pending payments
   const [pendingPage, setPendingPage] = useState(1);
   const [pendingPageSize, setPendingPageSize] = useState(10);
+  const [netlifyDeploy, setNetlifyDeploy] = useState<any>(null);
 
   const loadSaasAnalytics = async () => {
     setLoading(true);
@@ -251,6 +253,16 @@ export default function MasterAdminDashboardPage() {
             recentInvoices: [],
           });
         }
+      }
+
+      try {
+        const netlifyRes = await fetch("/api/webhooks/netlify?action=stats", { cache: "no-store" });
+        if (netlifyRes.ok) {
+          const netlifyData = await netlifyRes.json();
+          setNetlifyDeploy(netlifyData.stats?.latestDeploy || null);
+        }
+      } catch {
+        // Soft fail
       }
     } catch (err: any) {
       console.error("Failed to load SaaS analytics:", err);
@@ -355,6 +367,74 @@ export default function MasterAdminDashboardPage() {
           <span>{actionMessage}</span>
         </div>
       )}
+
+      {/* NETLIFY STOREFRONT (FO) DEPLOYMENT STATUS STRIP */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
+              netlifyDeploy?.isCompleted
+                ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                : netlifyDeploy?.state === "building"
+                ? "bg-amber-950 text-amber-400 border-amber-800 animate-pulse"
+                : netlifyDeploy?.state === "error"
+                ? "bg-rose-950 text-rose-400 border-rose-800"
+                : "bg-slate-800 text-slate-400 border-slate-700"
+            }`}
+          >
+            <Rocket className="w-5 h-5" />
+          </div>
+
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-200">
+                Netlify Storefront (FO) Deploy:
+              </span>
+              <span
+                className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                  netlifyDeploy?.isCompleted
+                    ? "bg-emerald-950 text-emerald-300 border-emerald-800"
+                    : netlifyDeploy?.state === "building"
+                    ? "bg-amber-950 text-amber-300 border-amber-800"
+                    : netlifyDeploy?.state === "error"
+                    ? "bg-rose-950 text-rose-300 border-rose-800"
+                    : "bg-slate-800 text-slate-300 border-slate-700"
+                }`}
+              >
+                {netlifyDeploy?.statusText || "Ready for CI/CD Webhook"}
+              </span>
+              <span className="text-xs font-mono text-slate-400">
+                {netlifyDeploy?.siteName || "serene-croissant-868f08"}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">
+              {netlifyDeploy?.title || "Production customer-facing storefront build"}
+              {netlifyDeploy?.deployTime ? ` • Built in ${netlifyDeploy.deployTime}s` : ""}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 shrink-0">
+          <a
+            href={netlifyDeploy?.url || "https://serene-croissant-868f08.netlify.app"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition flex items-center gap-1.5"
+          >
+            <Globe className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Visit Live FO</span>
+            <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
+          </a>
+
+          <Link
+            href="/deployments"
+            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-indigo-600/20"
+          >
+            <Rocket className="w-3.5 h-3.5" />
+            <span>Manage Deployments & Webhook</span>
+          </Link>
+        </div>
+      </div>
 
       {/* 2. PRIMARY EXECUTIVE SAAS KPI METRICS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">

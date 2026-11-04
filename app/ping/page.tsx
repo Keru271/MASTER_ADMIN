@@ -98,8 +98,16 @@ const DEFAULT_SERVICES: ServiceConfig[] = [
     name: "Master Admin Control Panel",
     category: "Admin",
     description: "Platform-wide master administration, tenant governance & revenue analytics.",
-    defaultUrl: typeof window !== "undefined" ? window.location.origin : "http://localhost:3003",
+    defaultUrl: typeof window !== "undefined" ? window.location.origin : "http://localhost:3002",
     iconName: "ShieldCheck",
+  },
+  {
+    id: "netlify-storefront",
+    name: "Netlify Storefront (FO Production)",
+    category: "Storefront",
+    description: "Production customer-facing storefront deployed on Netlify with automated CI/CD webhooks.",
+    defaultUrl: "https://serene-croissant-868f08.netlify.app",
+    iconName: "Globe",
   },
 ];
 

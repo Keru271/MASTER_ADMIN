@@ -18,6 +18,7 @@ import {
   X,
   ChevronDown,
   GitBranch,
+  Rocket,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { PWAInstallButton } from "@/components/PWAInstallButton";
@@ -69,6 +70,7 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: SidebarProps) {
       items: [
         { label: "Pricing Tiers", href: "/pricing", icon: CreditCard },
         { label: "Marketplace Themes", href: "/templates", icon: Palette },
+        { label: "Netlify Deployments", href: "/deployments", icon: Rocket },
         { label: "Notifications", href: "/notifications", icon: Bell },
         { label: "System Settings", href: "/settings", icon: Settings },
       ],
