@@ -3,15 +3,6 @@ import { deploymentsStore } from "@/lib/deploymentsStore";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Netlify Deployments Webhook Endpoint
- * 
- * Configured in Netlify Dashboard:
- * Site configuration -> Build & deploy -> Deploy notifications -> Add notification -> Outgoing webhook
- * URL: https://<master-admin-domain>/api/webhooks/netlify
- * Events: Deploy started, Deploy succeeded, Deploy failed
- */
-
 export async function POST(req: NextRequest) {
   try {
     const eventHeader = req.headers.get("x-netlify-event") || undefined;
