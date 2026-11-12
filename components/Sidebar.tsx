@@ -70,7 +70,7 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: SidebarProps) {
       items: [
         { label: "Pricing Tiers", href: "/pricing", icon: CreditCard },
         { label: "Marketplace Themes", href: "/templates", icon: Palette },
-        { label: "Netlify Deployments", href: "/deployments", icon: Rocket },
+        { label: "Deployments Hub", href: "/deployments", icon: Rocket },
         { label: "Notifications", href: "/notifications", icon: Bell },
         { label: "System Settings", href: "/settings", icon: Settings },
       ],
@@ -118,11 +118,10 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: SidebarProps) {
       )}
 
       <aside
-        className={`bg-slate-900 border-r border-slate-800 flex flex-col justify-between text-slate-300 transition-all duration-300 z-50 ${
-          mobileOpen
+        className={`bg-slate-900 border-r border-slate-800 flex flex-col justify-between text-slate-300 transition-all duration-300 z-50 ${mobileOpen
             ? "fixed inset-y-0 left-0 w-72 shadow-2xl flex"
             : "hidden lg:flex w-64 h-screen shrink-0 sticky top-0"
-        }`}
+          }`}
       >
         <div className="flex-1 flex flex-col min-h-0">
           {/* Brand Header */}
@@ -159,11 +158,10 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: SidebarProps) {
                 <Link
                   href={directItem.href}
                   onClick={handleLinkClick}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all ${
-                    isActive
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all ${isActive
                       ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 font-semibold"
                       : "hover:bg-slate-800 text-slate-400 hover:text-slate-200"
-                  }`}
+                    }`}
                 >
                   <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-slate-400"}`} />
                   {directItem.label}
@@ -197,17 +195,15 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: SidebarProps) {
                         [group.id]: !prev[group.id],
                       }))
                     }
-                    className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                      isGroupActive
+                    className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${isGroupActive
                         ? "bg-slate-800/80 text-white font-semibold"
                         : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <GroupIcon
-                        className={`w-4 h-4 ${
-                          isGroupActive ? "text-indigo-400" : "text-slate-400"
-                        }`}
+                        className={`w-4 h-4 ${isGroupActive ? "text-indigo-400" : "text-slate-400"
+                          }`}
                       />
                       <span className="truncate">{group.label}</span>
                     </div>
@@ -217,9 +213,8 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: SidebarProps) {
                         {group.items.length}
                       </span>
                       <ChevronDown
-                        className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                          isOpen ? "rotate-180 text-slate-300" : "text-slate-500"
-                        }`}
+                        className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? "rotate-180 text-slate-300" : "text-slate-500"
+                          }`}
                       />
                     </div>
                   </button>
@@ -239,47 +234,41 @@ export function Sidebar({ mobileOpen = false, onCloseMobile }: SidebarProps) {
                           >
                             {/* Vertical trunk line */}
                             <div
-                              className={`absolute left-[7px] top-0 pointer-events-none transition-colors duration-200 ${
-                                isLast ? "h-[16px]" : "h-full"
-                              } w-[1.5px] ${
-                                isChildActive
+                              className={`absolute left-[7px] top-0 pointer-events-none transition-colors duration-200 ${isLast ? "h-[16px]" : "h-full"
+                                } w-[1.5px] ${isChildActive
                                   ? "bg-indigo-500"
                                   : "bg-slate-800 group-hover/leaf:bg-slate-700"
-                              }`}
+                                }`}
                             />
 
                             {/* Curved horizontal elbow connector */}
                             <div
-                              className={`absolute left-[7px] top-[16px] w-[14px] h-[1.5px] pointer-events-none transition-colors duration-200 ${
-                                isChildActive
+                              className={`absolute left-[7px] top-[16px] w-[14px] h-[1.5px] pointer-events-none transition-colors duration-200 ${isChildActive
                                   ? "bg-indigo-500"
                                   : "bg-slate-800 group-hover/leaf:bg-slate-700"
-                              }`}
+                                }`}
                             />
 
                             {/* Branch leaf node dot */}
                             <div
-                              className={`absolute left-[19px] top-[13.5px] w-1.5 h-1.5 rounded-full pointer-events-none transition-all duration-200 z-10 ${
-                                isChildActive
+                              className={`absolute left-[19px] top-[13.5px] w-1.5 h-1.5 rounded-full pointer-events-none transition-all duration-200 z-10 ${isChildActive
                                   ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.9)] scale-125"
                                   : "bg-slate-700 group-hover/leaf:bg-indigo-400"
-                              }`}
+                                }`}
                             />
 
                             {/* Clickable Nav Link */}
                             <Link
                               href={item.href}
                               onClick={handleLinkClick}
-                              className={`w-full ml-[26px] flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all ${
-                                isChildActive
+                              className={`w-full ml-[26px] flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all ${isChildActive
                                   ? "bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30"
                                   : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
-                              }`}
+                                }`}
                             >
                               <ItemIcon
-                                className={`w-3.5 h-3.5 shrink-0 ${
-                                  isChildActive ? "text-indigo-400" : "text-slate-500"
-                                }`}
+                                className={`w-3.5 h-3.5 shrink-0 ${isChildActive ? "text-indigo-400" : "text-slate-500"
+                                  }`}
                               />
                               <span className="truncate">{item.label}</span>
                             </Link>

@@ -1,0 +1,54 @@
+[
+  {
+    "id": "cms-frontend",
+    "name": "CMS Frontend",
+    "type": "frontend",
+    "provider": "netlify",
+    "hookUrl": "https://api.netlify.com/build_hooks/6af2056df4d574944d1fbba1",
+    "defaultHookUrl": "https://api.netlify.com/build_hooks/6af2056df4d574944d1fbba1",
+    "envKey": "CMS_FRONTEND_BUILD_HOOK",
+    "liveUrl": "https://omnistore-cms.netlify.app",
+    "description": "Next.js Merchant Admin & Multi-tenant CMS Dashboard",
+    "status": "building",
+    "lastTriggeredAt": "2026-11-09T17:58:53.156Z",
+    "lastTriggerStatus": "SUCCESS",
+    "lastTriggerMessage": "Deploy successfully dispatched (200 OK)",
+    "lastDeployId": "hook_1794247133144"
+  },
+  {
+    "id": "storefront-frontend",
+    "name": "Storefront Frontend",
+    "type": "frontend",
+    "provider": "netlify",
+    "hookUrl": "https://api.netlify.com/build_hooks/6af205d212c10085f68df573",
+    "defaultHookUrl": "https://api.netlify.com/build_hooks/6af205d212c10085f68df573",
+    "envKey": "STOREFRONT_FRONTEND_BUILD_HOOK",
+    "liveUrl": "https://serene-croissant-868f08.netlify.app",
+    "description": "Customer-facing E-Commerce Storefront (FO) Web App",
+    "status": "idle"
+  },
+  {
+    "id": "cms-backend",
+    "name": "CMS Backend",
+    "type": "backend",
+    "provider": "render",
+    "hookUrl": "https://api.render.com/deploy/srv-da7i6l942hec73bu2ec0?key=3ng7wGHX1O4",
+    "defaultHookUrl": "https://api.render.com/deploy/srv-da7i6l942hec73bu2ec0?key=3ng7wGHX1O4",
+    "envKey": "CMS_BACKEND_DEPLOY_HOOK",
+    "liveUrl": "https://cms-backend.onrender.com",
+    "description": "CMS REST API, Multi-tenant DB Engine & Auth Service",
+    "status": "idle"
+  },
+  {
+    "id": "storefront-backend",
+    "name": "Storefront Backend",
+    "type": "backend",
+    "provider": "render",
+    "hookUrl": "https://api.render.com/deploy/srv-da7i6l942hec73bu2ec0?key=3ng7wGHX1O4",
+    "defaultHookUrl": "https://api.render.com/deploy/srv-da7i6l942hec73bu2ec0?key=3ng7wGHX1O4",
+    "envKey": "STOREFRONT_BACKEND_DEPLOY_HOOK",
+    "liveUrl": "https://storefront-backend.onrender.com",
+    "description": "Storefront Catalog, Cart & Checkout Backend Service",
+    "status": "idle"
+  }
+]

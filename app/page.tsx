@@ -175,6 +175,7 @@ export default function MasterAdminDashboardPage() {
   const [pendingPage, setPendingPage] = useState(1);
   const [pendingPageSize, setPendingPageSize] = useState(10);
   const [netlifyDeploy, setNetlifyDeploy] = useState<any>(null);
+  const [deployServices, setDeployServices] = useState<any[]>([]);
 
   const loadSaasAnalytics = async () => {
     setLoading(true);
@@ -256,10 +257,11 @@ export default function MasterAdminDashboardPage() {
       }
 
       try {
-        const netlifyRes = await fetch("/api/webhooks/netlify?action=stats", { cache: "no-store" });
-        if (netlifyRes.ok) {
-          const netlifyData = await netlifyRes.json();
-          setNetlifyDeploy(netlifyData.stats?.latestDeploy || null);
+        const deployRes = await fetch("/api/deployments", { cache: "no-store" });
+        if (deployRes.ok) {
+          const deployData = await deployRes.json();
+          setNetlifyDeploy(deployData.stats?.latestDeploy || null);
+          setDeployServices(deployData.services || []);
         }
       } catch {
         // Soft fail
@@ -368,70 +370,61 @@ export default function MasterAdminDashboardPage() {
         </div>
       )}
 
-      {/* NETLIFY STOREFRONT (FO) DEPLOYMENT STATUS STRIP */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* 4 DEPLOYMENT HOOKS & CI/CD STATUS STRIP */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div
-            className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
-              netlifyDeploy?.isCompleted
-                ? "bg-emerald-950 text-emerald-400 border-emerald-800"
-                : netlifyDeploy?.state === "building"
-                ? "bg-amber-950 text-amber-400 border-amber-800 animate-pulse"
-                : netlifyDeploy?.state === "error"
-                ? "bg-rose-950 text-rose-400 border-rose-800"
-                : "bg-slate-800 text-slate-400 border-slate-700"
-            }`}
-          >
+          <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border bg-gradient-to-tr from-indigo-600/30 to-purple-600/30 border-indigo-500/40 text-indigo-400">
             <Rocket className="w-5 h-5" />
           </div>
 
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-black uppercase tracking-wider text-slate-200">
-                Netlify Storefront (FO) Deploy:
+                CI/CD Deploy Hooks:
               </span>
-              <span
-                className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${
-                  netlifyDeploy?.isCompleted
-                    ? "bg-emerald-950 text-emerald-300 border-emerald-800"
-                    : netlifyDeploy?.state === "building"
-                    ? "bg-amber-950 text-amber-300 border-amber-800"
-                    : netlifyDeploy?.state === "error"
-                    ? "bg-rose-950 text-rose-300 border-rose-800"
-                    : "bg-slate-800 text-slate-300 border-slate-700"
-                }`}
-              >
-                {netlifyDeploy?.statusText || "Ready for CI/CD Webhook"}
+              <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800">
+                4 Services Integrated
               </span>
-              <span className="text-xs font-mono text-slate-400">
-                {netlifyDeploy?.siteName || "serene-croissant-868f08"}
+              <span className="text-xs text-slate-400">
+                (CMS & Storefront Frontends on Netlify • CMS & Storefront Backends on Render)
               </span>
             </div>
-            <p className="text-xs text-slate-400">
-              {netlifyDeploy?.title || "Production customer-facing storefront build"}
-              {netlifyDeploy?.deployTime ? ` • Built in ${netlifyDeploy.deployTime}s` : ""}
-            </p>
+
+            <div className="flex items-center gap-2 flex-wrap text-xs text-slate-400">
+              <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-teal-300">
+                CMS FO (Netlify)
+              </span>
+              <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-emerald-300">
+                Storefront FO (Netlify)
+              </span>
+              <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-purple-300">
+                CMS API (Render)
+              </span>
+              <span className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-sky-300">
+                Storefront API (Render)
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
           <a
-            href={netlifyDeploy?.url || "https://serene-croissant-868f08.netlify.app"}
+            href="https://serene-croissant-868f08.netlify.app"
             target="_blank"
             rel="noopener noreferrer"
             className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition flex items-center gap-1.5"
           >
             <Globe className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Visit Live FO</span>
+            <span>Visit Storefront</span>
             <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
           </a>
 
           <Link
             href="/deployments"
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-indigo-600/20"
+            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black transition flex items-center gap-1.5 shadow-md shadow-indigo-600/20"
           >
             <Rocket className="w-3.5 h-3.5" />
-            <span>Manage Deployments & Webhook</span>
+            <span>Manage & Trigger Deployments</span>
           </Link>
         </div>
       </div>
@@ -745,17 +738,16 @@ export default function MasterAdminDashboardPage() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2.5">
                       <span
-                        className={`w-3 h-3 rounded-full ${
-                          tier.id === "FREE"
+                        className={`w-3 h-3 rounded-full ${tier.id === "FREE"
                             ? "bg-slate-400"
                             : tier.id === "PRO"
-                            ? "bg-indigo-400"
-                            : tier.id === "TEAM"
-                            ? "bg-emerald-400"
-                            : tier.id === "ENTERPRISE"
-                            ? "bg-purple-400"
-                            : "bg-amber-400"
-                        }`}
+                              ? "bg-indigo-400"
+                              : tier.id === "TEAM"
+                                ? "bg-emerald-400"
+                                : tier.id === "ENTERPRISE"
+                                  ? "bg-purple-400"
+                                  : "bg-amber-400"
+                          }`}
                       />
                       <span className="text-sm font-bold text-slate-100">{tier.name}</span>
                       <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] font-semibold text-slate-400">
@@ -776,17 +768,16 @@ export default function MasterAdminDashboardPage() {
                   {/* Progress Bar */}
                   <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800/80">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        tier.id === "FREE"
+                      className={`h-full rounded-full transition-all duration-500 ${tier.id === "FREE"
                           ? "bg-slate-500"
                           : tier.id === "PRO"
-                          ? "bg-gradient-to-r from-indigo-500 to-indigo-400"
-                          : tier.id === "TEAM"
-                          ? "bg-gradient-to-r from-emerald-500 to-teal-400"
-                          : tier.id === "ENTERPRISE"
-                          ? "bg-gradient-to-r from-purple-500 to-pink-500"
-                          : "bg-gradient-to-r from-amber-500 to-yellow-400"
-                      }`}
+                            ? "bg-gradient-to-r from-indigo-500 to-indigo-400"
+                            : tier.id === "TEAM"
+                              ? "bg-gradient-to-r from-emerald-500 to-teal-400"
+                              : tier.id === "ENTERPRISE"
+                                ? "bg-gradient-to-r from-purple-500 to-pink-500"
+                                : "bg-gradient-to-r from-amber-500 to-yellow-400"
+                        }`}
                       style={{ width: `${Math.max(tier.percentage, 2)}%` }}
                     />
                   </div>
@@ -878,75 +869,74 @@ export default function MasterAdminDashboardPage() {
                 filteredPending
                   .slice((pendingPage - 1) * pendingPageSize, pendingPage * pendingPageSize)
                   .map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <div className="font-semibold text-slate-100 flex items-center gap-1.5">
-                        <Store className="w-3.5 h-3.5 text-indigo-400" />
-                        <span>{item.storeName}</span>
-                      </div>
-                      <div className="text-[10px] font-mono text-indigo-400">/{item.storeSlug}</div>
-                    </td>
+                    <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="py-3.5 px-4">
+                        <div className="font-semibold text-slate-100 flex items-center gap-1.5">
+                          <Store className="w-3.5 h-3.5 text-indigo-400" />
+                          <span>{item.storeName}</span>
+                        </div>
+                        <div className="text-[10px] font-mono text-indigo-400">/{item.storeSlug}</div>
+                      </td>
 
-                    <td className="py-3.5 px-4">
-                      <div className="font-medium text-slate-200">{item.ownerName}</div>
-                      <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                        <Mail className="w-3 h-3 text-slate-500" />
-                        <span>{item.ownerEmail}</span>
-                      </div>
-                    </td>
+                      <td className="py-3.5 px-4">
+                        <div className="font-medium text-slate-200">{item.ownerName}</div>
+                        <div className="text-[11px] text-slate-400 flex items-center gap-1">
+                          <Mail className="w-3 h-3 text-slate-500" />
+                          <span>{item.ownerEmail}</span>
+                        </div>
+                      </td>
 
-                    <td className="py-3.5 px-4">
-                      <span className="font-bold text-slate-200">{item.tierName}</span>
-                      <div className="text-[10px] text-slate-400 uppercase">{item.billingCycle}</div>
-                    </td>
+                      <td className="py-3.5 px-4">
+                        <span className="font-bold text-slate-200">{item.tierName}</span>
+                        <div className="text-[10px] text-slate-400 uppercase">{item.billingCycle}</div>
+                      </td>
 
-                    <td className="py-3.5 px-4 font-mono font-bold text-amber-300 text-sm">
-                      {formatPrice(item.amount, item.currency)}
-                    </td>
+                      <td className="py-3.5 px-4 font-mono font-bold text-amber-300 text-sm">
+                        {formatPrice(item.amount, item.currency)}
+                      </td>
 
-                    <td className="py-3.5 px-4">
-                      <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300">
-                        {item.paymentMethod}
-                      </span>
-                    </td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300">
+                          {item.paymentMethod}
+                        </span>
+                      </td>
 
-                    <td className="py-3.5 px-4">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          item.status === "OVERDUE"
-                            ? "bg-rose-950/80 text-rose-300 border border-rose-800/60"
-                            : "bg-amber-950/80 text-amber-300 border border-amber-800/60"
-                        }`}
-                      >
-                        <Clock className="w-3 h-3" />
-                        {item.status} ({item.daysPending}d)
-                      </span>
-                    </td>
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${item.status === "OVERDUE"
+                              ? "bg-rose-950/80 text-rose-300 border border-rose-800/60"
+                              : "bg-amber-950/80 text-amber-300 border border-amber-800/60"
+                            }`}
+                        >
+                          <Clock className="w-3 h-3" />
+                          {item.status} ({item.daysPending}d)
+                        </span>
+                      </td>
 
-                    <td className="py-3.5 px-4 text-right space-x-2">
-                      <button
-                        onClick={() => handleMarkAsPaid(item)}
-                        disabled={processingId === item.id}
-                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow-sm shadow-emerald-600/30 transition-all cursor-pointer disabled:opacity-50 inline-flex items-center gap-1"
-                      >
-                        {processingId === item.id ? (
-                          <RefreshCw className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <Check className="w-3 h-3" />
-                        )}
-                        <span>Mark Paid</span>
-                      </button>
+                      <td className="py-3.5 px-4 text-right space-x-2">
+                        <button
+                          onClick={() => handleMarkAsPaid(item)}
+                          disabled={processingId === item.id}
+                          className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow-sm shadow-emerald-600/30 transition-all cursor-pointer disabled:opacity-50 inline-flex items-center gap-1"
+                        >
+                          {processingId === item.id ? (
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Check className="w-3 h-3" />
+                          )}
+                          <span>Mark Paid</span>
+                        </button>
 
-                      <a
-                        href={`mailto:${item.ownerEmail}?subject=OmniStore Payment Reminder for ${encodeURIComponent(item.storeName)}&body=Dear ${encodeURIComponent(item.ownerName)}, your subscription payment of ${encodeURIComponent(formatPrice(item.amount, item.currency))} for plan ${item.tierName} is currently pending.`}
-                        className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all inline-flex items-center"
-                        title="Send Email Reminder"
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                      </a>
-                    </td>
-                  </tr>
-                ))
+                        <a
+                          href={`mailto:${item.ownerEmail}?subject=OmniStore Payment Reminder for ${encodeURIComponent(item.storeName)}&body=Dear ${encodeURIComponent(item.ownerName)}, your subscription payment of ${encodeURIComponent(formatPrice(item.amount, item.currency))} for plan ${item.tierName} is currently pending.`}
+                          className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all inline-flex items-center"
+                          title="Send Email Reminder"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                        </a>
+                      </td>
+                    </tr>
+                  ))
               ) : (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-slate-500 text-xs">

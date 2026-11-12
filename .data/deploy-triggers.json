@@ -1,0 +1,16 @@
+[
+  {
+    "id": "trig_1794247129840_6qoxc",
+    "serviceId": "cms-frontend",
+    "serviceName": "CMS Frontend",
+    "provider": "netlify",
+    "hookUrl": "https://api.netlify.com/build_hooks/6af2056df4d574944d1fbba1",
+    "status": "SUCCESS",
+    "statusCode": 200,
+    "message": "Deploy successfully dispatched (200 OK)",
+    "details": null,
+    "durationMs": 3155,
+    "triggeredAt": "2026-11-09T17:58:53.156Z",
+    "clearCache": false
+  }
+]
